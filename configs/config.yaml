@@ -1,0 +1,87 @@
+project:
+  name: customer-churn-predictor
+  version: "1.0.0"
+  mlflow_tracking_uri: "mlruns"
+  experiment_name: "churn_prediction"
+
+data:
+  raw_path: "data/Telco Customer Churn.csv"
+  test_size: 0.2
+  random_state: 42
+  target_col: "Churn"
+  drop_cols: ["customerID"]
+
+features:
+  numeric:
+    - SeniorCitizen
+    - tenure
+    - MonthlyCharges
+    - TotalCharges
+    - avg_monthly_spend
+    - contract_risk
+    - num_services
+    - high_value_customer
+
+  categorical:
+    - gender
+    - Partner
+    - Dependents
+    - PhoneService
+    - MultipleLines
+    - InternetService
+    - OnlineSecurity
+    - OnlineBackup
+    - DeviceProtection
+    - TechSupport
+    - StreamingTV
+    - StreamingMovies
+    - Contract
+    - PaperlessBilling
+    - PaymentMethod
+
+  service_cols:
+    - PhoneService
+    - MultipleLines
+    - InternetService
+    - OnlineSecurity
+    - OnlineBackup
+    - DeviceProtection
+    - TechSupport
+    - StreamingTV
+    - StreamingMovies
+
+  contract_risk_map:
+    "Month-to-month": 2
+    "One year": 1
+    "Two year": 0
+
+models:
+  logistic_regression:
+    max_iter: 2000
+
+  random_forest:
+    n_estimators: 300
+    max_depth: 12
+
+  xgboost:
+    n_estimators: 300
+    max_depth: 6
+    learning_rate: 0.05
+    eval_metric: logloss
+
+smote:
+  random_state: 42
+
+calibration:
+  method: isotonic
+  cv: 3
+
+evaluation:
+  threshold: 0.5
+  shap_enabled: true
+
+business:
+  retention_cost: 50
+  revenue_per_customer: 500
+  retention_effectiveness: 0.4
+  default_budget: 20000
