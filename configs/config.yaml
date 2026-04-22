@@ -5,7 +5,7 @@ project:
   experiment_name: "churn_prediction"
 
 data:
-  raw_path: "data/Telco Customer Churn.csv"
+  raw_path: "src/data/Telco Customer Churn.csv"
   test_size: 0.2
   random_state: 42
   target_col: "Churn"
