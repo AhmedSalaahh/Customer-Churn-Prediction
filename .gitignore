@@ -7,3 +7,5 @@ mlruns/
 .pytest_cache/
 .ruff_cache/
 *.pkl
+my_churn/  
+*.csv

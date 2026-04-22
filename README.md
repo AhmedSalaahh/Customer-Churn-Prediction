@@ -8,35 +8,56 @@ Modularised from a research notebook – designed to grow stage-by-stage into a 
 ## Project layout
 
 ```
-churn_predictor/
-├── configs/
-│   └── config.yaml          # Single source of truth for all parameters
-│
-├── src/
-│   ├── data/
-│   │   └── preprocessing.py  # Load → clean → split
-│   ├── features/
-│   │   ├── engineering.py    # Domain feature creation
-│   │   └── pipeline.py       # sklearn ColumnTransformer + SMOTE
-│   ├── models/
-│   │   ├── training.py       # Build, train, calibrate, MLflow-log
-│   │   └── registry.py       # Select best, save/load bundle
-│   └── evaluation/
-│       └── metrics.py        # Metrics, SHAP, business simulations
-│
-├── scripts/
-│   ├── train.py              # CLI – full training pipeline
-│   └── predict.py            # CLI – batch scoring
-│
-├── tests/
-│   ├── test_preprocessing.py
-│   ├── test_engineering.py
-│   ├── test_pipeline.py
-│   └── test_training_integration.py
-│
-├── requirements.txt
-├── Makefile
-└── README.md
+* **`configs/`**
+
+  * `config.yaml`
+  * Centralized configuration for all experiments → ensures reproducibility and easy hyperparameter tuning
+
+* **`src/data/`**
+
+  * `preprocessing.py`
+  * Builds a robust data pipeline → handles data cleaning, validation, and train/test splitting
+
+* **`src/features/`**
+
+  * `engineering.py`
+  * Creates high-impact features → transforms raw data into meaningful predictive signals
+  * `pipeline.py`
+  * Scalable preprocessing pipeline → encoding, transformations, and class imbalance handling (SMOTE)
+
+* **`src/models/`**
+
+  * `training.py`
+  * End-to-end model development → training, tuning, calibration, and experiment tracking (MLflow)
+  * `registry.py`
+  * Model lifecycle management → selects best model and enables reproducible saving/loading
+
+* **`src/evaluation/`**
+
+  * `metrics.py`
+  * Business-focused evaluation → performance metrics, model explainability (SHAP), and ROI simulations
+
+* **`scripts/`**
+
+  * `train.py`
+  * One-command training pipeline → takes raw data to a production-ready model
+  * `predict.py`
+  * Batch inference tool → generates churn predictions for real-world applications
+
+* **`tests/`**
+
+  * Unit & integration tests (`test_*.py`)
+  * Ensures reliability and correctness across the entire ML pipeline
+
+* **`requirements.txt`**
+
+  * Dependency management → guarantees consistent environments
+
+* **`README.md`**
+
+  * Project documentation → overview, setup instructions, and usage guide
+
+
 ```
 
 ---
@@ -45,26 +66,26 @@ churn_predictor/
 
 ```bash
 # 1. Install dependencies
-make install
+pip install -r requirements.txt
 
 # 2. Train all models (MLflow tracked)
-make train
+python scripts/train.py --config configs/config.yaml
 
 # 3. Inspect experiments in the UI
-make mlflow-ui          # open http://localhost:5000
+mlflow ui --backend-store-uri mlruns --port 5000          # open http://localhost:5000
 
 # 4. Batch predict
-make predict INPUT=data/new_customers.csv
+python scripts/predict.py --model outputs/best_model.pkl --input "src/data/Telco Customer Churn.csv" --output outputs/predictions.csv
 
 # 5. Run the full test suite
-make test
+pytest tests/ -v --cov=src --cov-report=term-missing
 ```
 
 ---
 
 ## Configuration
 
-All tunable values live in `configs/config.yaml` – no magic numbers in code.
+All tunable values live in `configs/config.yaml`.
 
 | Section | Key parameters |
 |---------|----------------|
