@@ -8,55 +8,54 @@ Modularised from a research notebook – designed to grow stage-by-stage into a 
 ## Project layout
 
 ```
-* **`configs/`**
+* **configs**
 
-  * `config.yaml`
+  * config.yaml
   * Centralized configuration for all experiments → ensures reproducibility and easy hyperparameter tuning
 
-* **`src/data/`**
+* **src/data**
 
-  * `preprocessing.py`
+  * preprocessing.py
   * Builds a robust data pipeline → handles data cleaning, validation, and train/test splitting
 
-* **`src/features/`**
+* **src/features**
 
-  * `engineering.py`
+  * engineering.py
   * Creates high-impact features → transforms raw data into meaningful predictive signals
-  * `pipeline.py`
+  * pipeline.py
   * Scalable preprocessing pipeline → encoding, transformations, and class imbalance handling (SMOTE)
 
-* **`src/models/`**
+* **src/models**
 
-  * `training.py`
+  * training.py
   * End-to-end model development → training, tuning, calibration, and experiment tracking (MLflow)
-  * `registry.py`
+  * registry.py
   * Model lifecycle management → selects best model and enables reproducible saving/loading
 
-* **`src/evaluation/`**
+* **src/evaluation**
 
-  * `metrics.py`
+  * metrics.py
   * Business-focused evaluation → performance metrics, model explainability (SHAP), and ROI simulations
 
-* **`scripts/`**
+* **scripts**
 
-  * `train.py`
+  * train.py
   * One-command training pipeline → takes raw data to a production-ready model
-  * `predict.py`
+  * predict.py
   * Batch inference tool → generates churn predictions for real-world applications
 
-* **`tests/`**
+* **tests**
 
-  * Unit & integration tests (`test_*.py`)
+  * Unit & integration tests (test_*.py)
   * Ensures reliability and correctness across the entire ML pipeline
 
-* **`requirements.txt`**
+* **requirements.txt**
 
   * Dependency management → guarantees consistent environments
 
-* **`README.md`**
+* **README.md**
 
   * Project documentation → overview, setup instructions, and usage guide
-
 
 ```
 
