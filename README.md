@@ -7,7 +7,7 @@ Modularised from a research notebook – designed to grow stage-by-stage into a 
 
 ## Project layout
 
-```
+
 * **configs**
 
   * config.yaml
@@ -57,7 +57,7 @@ Modularised from a research notebook – designed to grow stage-by-stage into a 
 
   * Project documentation → overview, setup instructions, and usage guide
 
-```
+
 
 ---
 
