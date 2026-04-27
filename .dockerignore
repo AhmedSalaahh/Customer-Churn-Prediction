@@ -1,0 +1,59 @@
+# ── Version control ──────────────────────────────────────────────────────────
+.git/
+.gitignore
+
+# ── Python cache ─────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# ── Virtual environments ──────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+my_churn/
+
+# ── Data files (loaded via volume mount or S3 in production) ─────────────────
+data/
+*.csv
+*.parquet
+*.xlsx
+
+# ── Model artefacts (loaded via volume mount or S3 in production) ────────────
+# outputs/ is mounted at runtime — don't bake models into the image
+outputs/
+*.pkl
+*.joblib
+
+# ── MLflow tracking data ──────────────────────────────────────────────────────
+mlruns/
+mlartifacts/
+
+# ── Tests (not needed in the production image) ───────────────────────────────
+tests/
+pytest.ini
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ── Notebooks ────────────────────────────────────────────────────────────────
+*.ipynb
+.ipynb_checkpoints/
+
+# ── IDE / OS junk ────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Documentation ────────────────────────────────────────────────────────────
+README.md
+docs/
+
+# ── Docker files (no need to copy these into the image itself) ───────────────
+Dockerfile*
+docker-compose*.yml
+.dockerignore

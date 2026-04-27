@@ -1,0 +1,22 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# docker-compose.override.yml   ← automatically merged by docker compose
+# Development overrides: hot-reload, full source mount, debug logging
+#
+# docker compose up             ← uses both files automatically
+# docker compose -f docker-compose.yml up  ← production only (no override)
+# ══════════════════════════════════════════════════════════════════════════════
+
+services:
+  api:
+    # Mount the full source tree so code changes reload without a rebuild
+    volumes:
+      - .:/app
+    environment:
+      THRESHOLD: "0.5"
+    # --reload watches for file changes
+    command: >
+      uvicorn src.api.app:app
+        --host 0.0.0.0
+        --port 8000
+        --reload
+        --log-level debug

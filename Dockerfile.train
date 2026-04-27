@@ -1,0 +1,46 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# Training image
+# Heavier than the serving image — includes shap, matplotlib, mlflow UI.
+# Run once to produce outputs/best_model.pkl, then discard the container.
+# ══════════════════════════════════════════════════════════════════════════════
+FROM python:3.11-slim AS builder
+
+WORKDIR /build
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+
+RUN python -m venv /build/venv \
+    && /build/venv/bin/pip install --upgrade pip \
+    && /build/venv/bin/pip install --no-cache-dir -r requirements.txt
+
+
+FROM python:3.11-slim AS runtime
+
+WORKDIR /app
+
+COPY --from=builder /build/venv /app/venv
+
+COPY configs/   configs/
+COPY src/       src/
+COPY scripts/   scripts/
+
+RUN mkdir -p outputs mlruns data
+
+ENV PATH="/app/venv/bin:$PATH" \
+    PYTHONPATH="/app" \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    CONFIG_PATH="configs/config.yaml"
+
+# Mount data/ and outputs/ as volumes so artefacts persist after the
+# container exits:
+#   docker run -v $(pwd)/data:/app/data \
+#              -v $(pwd)/outputs:/app/outputs \
+#              churn-train
+VOLUME ["/app/data", "/app/outputs", "/app/mlruns"]
+
+CMD ["python", "scripts/train.py", "--config", "configs/config.yaml"]

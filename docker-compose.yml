@@ -1,0 +1,57 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# docker-compose.yml
+# Local development stack:
+#   - api       : FastAPI serving container  → localhost:8000
+#   - mlflow    : MLflow tracking UI         → localhost:5000
+#
+# Usage:
+#   docker compose up --build           # start everything
+#   docker compose up api               # api only
+#   docker compose logs -f api          # tail logs
+#   docker compose down                 # stop and remove containers
+# ══════════════════════════════════════════════════════════════════════════════
+
+services:
+
+  # ── FastAPI prediction service ───────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    image: churn-api:latest
+    container_name: churn_api
+    ports:
+      - "8000:8000"
+    environment:
+      CONFIG_PATH: "configs/config.yaml"
+      MODEL_PATH:  "outputs/best_model.pkl"
+      THRESHOLD:   "0.5"
+    volumes:
+      # Mount the trained model so the container can load it.
+      # Run `python scripts/train.py` first to produce this file.
+      - ./outputs:/app/outputs:ro
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+
+  # ── MLflow tracking UI ───────────────────────────────────────────────────
+  mlflow:
+    image: python:3.11-slim
+    container_name: churn_mlflow
+    working_dir: /app
+    command: >
+      bash -c "pip install -q mlflow &&
+               mlflow ui --backend-store-uri /app/mlruns
+                         --host 0.0.0.0
+                         --port 5000"
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlruns:/app/mlruns:ro
+    restart: unless-stopped
