@@ -12,8 +12,8 @@ Docker container. Run them separately after `docker compose up`:
 They test the real HTTP surface of the container (no mocks).
 """
 
-import pytest
 import os
+
 import requests
 
 # ── Config ────────────────────────────────────────────────────────────────────

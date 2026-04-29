@@ -4,11 +4,12 @@ tests/test_engineering.py
 Unit tests for src/features/engineering.py
 """
 
+import sys
+from pathlib import Path
+
 import pandas as pd
 import pytest
 
-import sys
-from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.features.engineering import (
@@ -19,7 +20,6 @@ from src.features.engineering import (
     build_features,
     normalize_service_cols,
 )
-
 
 # ──────────────────────────────────────────────
 # Fixtures

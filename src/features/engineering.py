@@ -5,8 +5,8 @@ Domain-specific feature creation from the raw cleaned DataFrame.
 """
 
 import logging
+
 import pandas as pd
-from typing import List
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ def add_contract_risk(df: pd.DataFrame, risk_map: dict) -> pd.DataFrame:
     return df
 
 
-def normalize_service_cols(df: pd.DataFrame, service_cols: List[str]) -> pd.DataFrame:
+def normalize_service_cols(df: pd.DataFrame, service_cols: list[str]) -> pd.DataFrame:
     """
     Replace 'No internet service' / 'No phone service' with 'No'
     so all service flags are simple Yes/No.
@@ -40,7 +40,7 @@ def normalize_service_cols(df: pd.DataFrame, service_cols: List[str]) -> pd.Data
     return df
 
 
-def add_num_services(df: pd.DataFrame, service_cols: List[str]) -> pd.DataFrame:
+def add_num_services(df: pd.DataFrame, service_cols: list[str]) -> pd.DataFrame:
     """Count of active services per customer."""
     df = df.copy()
     existing = [c for c in service_cols if c in df.columns]

@@ -6,7 +6,6 @@ Each handler is thin: validate (Pydantic) → call inference → return schema.
 """
 
 import logging
-from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
@@ -155,4 +154,5 @@ def predict_batch_endpoint(
 
 # ── Fix the type annotation after import to avoid circular reference ──────────
 from src.api.schemas import CustomerFeatures  # noqa: E402
+
 predict.__annotations__["body"] = CustomerFeatures

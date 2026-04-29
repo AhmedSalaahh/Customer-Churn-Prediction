@@ -5,10 +5,10 @@ Handles raw data loading, cleaning, and train/test splitting.
 """
 
 import logging
-import pandas as pd
 from pathlib import Path
+
+import pandas as pd
 from sklearn.model_selection import train_test_split
-from typing import Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +59,7 @@ def split_data(
     target_col: str,
     test_size: float = 0.2,
     random_state: int = 42,
-) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
     """Stratified train/test split."""
     X = df.drop(columns=[target_col])
     y = df[target_col]

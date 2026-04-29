@@ -19,10 +19,11 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+import yaml
+
+from src.data.preprocessing import clean_data
 from src.features.engineering import build_features
 from src.models.registry import load_model_artifact
-from src.data.preprocessing import clean_data
-import yaml
 
 logging.basicConfig(
     level=logging.INFO,

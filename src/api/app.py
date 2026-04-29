@@ -13,7 +13,6 @@ Design choices:
 import logging
 import os
 from contextlib import asynccontextmanager
-from pathlib import Path
 
 import yaml
 from fastapi import FastAPI

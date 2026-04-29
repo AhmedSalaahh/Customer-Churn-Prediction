@@ -4,15 +4,15 @@ tests/test_preprocessing.py
 Unit tests for src/data/preprocessing.py
 """
 
+import sys
+from pathlib import Path
+
 import pandas as pd
 import pytest
 
-import sys
-from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.data.preprocessing import clean_data, split_data
-
 
 # ──────────────────────────────────────────────
 # Fixtures
@@ -102,7 +102,7 @@ class TestSplitData:
         total = len(X_train) + len(X_test)
         assert total == len(df)
 
-    def test_target_not_in_X(self, raw_df, data_cfg):
+    def test_target_not_in_x(self, raw_df, data_cfg):
         df = clean_data(raw_df, data_cfg)
         X_train, X_test, _, _ = split_data(df, target_col=data_cfg["target_col"])
         assert data_cfg["target_col"] not in X_train.columns

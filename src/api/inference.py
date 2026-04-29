@@ -5,9 +5,7 @@ Loads the model bundle once at startup and exposes predict functions.
 """
 
 import logging
-from typing import Optional
 
-import numpy as np
 import pandas as pd
 
 from src.models.registry import load_model_artifact
@@ -42,7 +40,7 @@ class ModelBundle:
         return len(self.feature_names)
 
 
-_bundle: Optional[ModelBundle] = None
+_bundle: ModelBundle | None = None
 
 
 def load_bundle(model_path: str) -> None:

@@ -5,15 +5,13 @@ Integration test: run the full training pipeline on synthetic data
 and assert that model artefacts and MLflow runs are produced correctly.
 """
 
-import tempfile
+import sys
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import pytest
-import yaml
 
-import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.data.preprocessing import clean_data, split_data
@@ -23,9 +21,12 @@ from src.features.pipeline import (
     fit_transform_with_smote,
     get_feature_names,
 )
-from src.models.registry import load_model_artifact, save_model_artifact, select_best_model
+from src.models.registry import (
+    load_model_artifact,
+    save_model_artifact,
+    select_best_model,
+)
 from src.models.training import train_all_models
-
 
 # ──────────────────────────────────────────────
 # Helpers

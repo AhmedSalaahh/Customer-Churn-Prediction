@@ -5,14 +5,14 @@ Train, calibrate, and MLflow-log all three models.
 """
 
 import logging
+
 import mlflow
 import mlflow.sklearn
 import numpy as np
-
 from sklearn.calibration import CalibratedClassifierCV
-from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import roc_auc_score, average_precision_score
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import average_precision_score, roc_auc_score
 from xgboost import XGBClassifier
 
 logger = logging.getLogger(__name__)

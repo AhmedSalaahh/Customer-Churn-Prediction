@@ -7,9 +7,9 @@ These act as the contract between the API caller and the model —
 any field mismatch is caught here before it reaches the ML code.
 """
 
-from typing import Literal, Optional
-from pydantic import BaseModel, Field, field_validator
+from typing import Literal
 
+from pydantic import BaseModel, Field, field_validator
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Request schemas
@@ -107,7 +107,7 @@ class PredictionResult(BaseModel):
     risk_tier: Literal["Low", "Medium", "High"] = Field(
         ..., description="Business-friendly risk bucket"
     )
-    expected_revenue_loss: Optional[float] = Field(
+    expected_revenue_loss: float | None = Field(
         None,
         description="churn_probability × TotalCharges (proxy CLV)"
     )

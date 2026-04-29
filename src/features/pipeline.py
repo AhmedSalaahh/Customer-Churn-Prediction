@@ -5,14 +5,13 @@ Builds the sklearn ColumnTransformer + SMOTE preprocessing pipeline.
 """
 
 import logging
-import numpy as np
-from typing import Tuple
 
+import numpy as np
 from imblearn.over_sampling import SMOTE
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +51,7 @@ def fit_transform_with_smote(
     X_train,
     y_train,
     random_state: int = 42,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Fit the preprocessor on X_train, apply SMOTE to balance classes.
 

@@ -4,12 +4,13 @@ tests/test_pipeline.py
 Tests for the sklearn ColumnTransformer + SMOTE pipeline.
 """
 
+import sys
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import pytest
 
-import sys
-from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.features.pipeline import (
@@ -17,7 +18,6 @@ from src.features.pipeline import (
     fit_transform_with_smote,
     get_feature_names,
 )
-
 
 # ──────────────────────────────────────────────
 # Fixtures
@@ -30,7 +30,7 @@ CATEGORICAL_FEATURES = ["gender", "Contract", "PaymentMethod"]
 
 
 @pytest.fixture()
-def small_X():
+def small_x():
     """40-row synthetic frame – enough for SMOTE (needs ≥ k_neighbors=5 minority samples)."""
     np.random.seed(0)
     n = 40
@@ -62,26 +62,26 @@ def small_y():
 # ──────────────────────────────────────────────
 
 class TestBuildPreprocessor:
-    def test_returns_column_transformer(self, small_X, small_y):
+    def test_returns_column_transformer(self, small_x, small_y):
         from sklearn.compose import ColumnTransformer
         prep = build_preprocessor(NUMERIC_FEATURES, CATEGORICAL_FEATURES)
         assert isinstance(prep, ColumnTransformer)
 
-    def test_fit_transform_produces_array(self, small_X, small_y):
+    def test_fit_transform_produces_array(self, small_x, small_y):
         prep = build_preprocessor(NUMERIC_FEATURES, CATEGORICAL_FEATURES)
-        out = prep.fit_transform(small_X)
+        out = prep.fit_transform(small_x)
         assert isinstance(out, np.ndarray)
 
-    def test_output_rows_match_input(self, small_X, small_y):
+    def test_output_rows_match_input(self, small_x, small_y):
         prep = build_preprocessor(NUMERIC_FEATURES, CATEGORICAL_FEATURES)
-        out = prep.fit_transform(small_X)
-        assert out.shape[0] == len(small_X)
+        out = prep.fit_transform(small_x)
+        assert out.shape[0] == len(small_x)
 
-    def test_output_has_more_cols_than_input(self, small_X, small_y):
+    def test_output_has_more_cols_than_input(self, small_x, small_y):
         """OHE should expand the categorical columns."""
         prep = build_preprocessor(NUMERIC_FEATURES, CATEGORICAL_FEATURES)
-        out = prep.fit_transform(small_X)
-        assert out.shape[1] > small_X.shape[1]
+        out = prep.fit_transform(small_x)
+        assert out.shape[1] > small_x.shape[1]
 
 
 # ──────────────────────────────────────────────
@@ -89,20 +89,20 @@ class TestBuildPreprocessor:
 # ──────────────────────────────────────────────
 
 class TestFitTransformWithSMOTE:
-    def test_balances_classes(self, small_X, small_y):
+    def test_balances_classes(self, small_x, small_y):
         prep = build_preprocessor(NUMERIC_FEATURES, CATEGORICAL_FEATURES)
-        X_res, y_res = fit_transform_with_smote(prep, small_X, small_y, random_state=42)
+        X_res, y_res = fit_transform_with_smote(prep, small_x, small_y, random_state=42)
         counts = pd.Series(y_res).value_counts()
         assert counts[0] == counts[1], "Classes should be balanced after SMOTE"
 
-    def test_resampled_larger_than_original(self, small_X, small_y):
+    def test_resampled_larger_than_original(self, small_x, small_y):
         prep = build_preprocessor(NUMERIC_FEATURES, CATEGORICAL_FEATURES)
-        X_res, y_res = fit_transform_with_smote(prep, small_X, small_y, random_state=42)
-        assert len(X_res) >= len(small_X)
+        X_res, y_res = fit_transform_with_smote(prep, small_x, small_y, random_state=42)
+        assert len(X_res) >= len(small_x), "Resampled data should have at least as many rows as original"
 
-    def test_no_nan_in_output(self, small_X, small_y):
+    def test_no_nan_in_output(self, small_x, small_y):
         prep = build_preprocessor(NUMERIC_FEATURES, CATEGORICAL_FEATURES)
-        X_res, _ = fit_transform_with_smote(prep, small_X, small_y, random_state=42)
+        X_res, _ = fit_transform_with_smote(prep, small_x, small_y, random_state=42)
         assert not np.isnan(X_res).any()
 
 
@@ -111,15 +111,15 @@ class TestFitTransformWithSMOTE:
 # ──────────────────────────────────────────────
 
 class TestGetFeatureNames:
-    def test_length_matches_array_cols(self, small_X, small_y):
+    def test_length_matches_array_cols(self, small_x, small_y):
         prep = build_preprocessor(NUMERIC_FEATURES, CATEGORICAL_FEATURES)
-        X_proc = prep.fit_transform(small_X)
+        X_proc = prep.fit_transform(small_x)
         names = get_feature_names(prep, NUMERIC_FEATURES, CATEGORICAL_FEATURES)
         assert len(names) == X_proc.shape[1]
 
-    def test_numeric_features_first(self, small_X, small_y):
+    def test_numeric_features_first(self, small_x, small_y):
         prep = build_preprocessor(NUMERIC_FEATURES, CATEGORICAL_FEATURES)
-        prep.fit_transform(small_X)
+        prep.fit_transform(small_x)
         names = get_feature_names(prep, NUMERIC_FEATURES, CATEGORICAL_FEATURES)
         for i, feat in enumerate(NUMERIC_FEATURES):
             assert names[i] == feat

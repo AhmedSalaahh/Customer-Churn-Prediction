@@ -5,7 +5,6 @@ Classification metrics, SHAP explainability, and business simulations.
 """
 
 import logging
-from typing import Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -56,7 +55,7 @@ def evaluate_model(
     }
 
 
-def plot_pr_curves(models: dict, X_test: np.ndarray, y_test, save_path: Optional[str] = None):
+def plot_pr_curves(models: dict, X_test: np.ndarray, y_test, save_path: str | None = None):
     """Plot precision-recall curves for all models in the dict."""
     plt.figure()
     for name, model in models.items():
@@ -87,7 +86,7 @@ def compute_shap_importance(
     X_test: np.ndarray,
     feature_names: list,
     top_n: int = 15,
-    save_path: Optional[str] = None,
+    save_path: str | None = None,
 ) -> pd.DataFrame:
     """
     Compute mean |SHAP| values using TreeExplainer on the underlying
