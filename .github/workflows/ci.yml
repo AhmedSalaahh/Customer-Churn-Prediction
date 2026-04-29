@@ -24,7 +24,8 @@ on:
 
 env:
   # Image name: ghcr.io/<your-github-username>/churn-predictor
-  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/churn-predictor
+  # IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/churn-predictor
+  IMAGE_NAME: ghcr.io/ahmedsalaahh/churn-predictor
   PYTHON_VERSION: "3.11"
 
 # ── Jobs ──────────────────────────────────────────────────────────────────────
@@ -100,6 +101,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set lowercase image name
+        run: echo "IMAGE_NAME=ghcr.io/$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')/churn-predictor" >> $GITHUB_ENV  
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         # Buildx enables layer caching and multi-platform builds
@@ -131,6 +135,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Set lowercase image name
+        run: echo "IMAGE_NAME=ghcr.io/$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')/churn-predictor" >> $GITHUB_ENV
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
