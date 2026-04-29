@@ -11,7 +11,7 @@
 #
 # Secrets required (set in GitHub → Settings → Secrets and variables → Actions):
 #   None for now — GHCR uses GITHUB_TOKEN which is automatic.
-#   AWS secrets added in Stage 5.
+#   In a real pipeline, you would add secrets for S3 or database access here.
 # ══════════════════════════════════════════════════════════════════════════════
 
 name: CI/CD Pipeline
