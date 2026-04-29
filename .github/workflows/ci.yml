@@ -1,0 +1,165 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# .github/workflows/ci.yml
+#
+# Triggered on every push to main and every pull request.
+#
+# Jobs (run in order):
+#   1. lint     — ruff code style check
+#   2. test     — full pytest suite (120 tests, no Docker needed)
+#   3. build    — docker build to verify the image compiles
+#   4. push     — push image to GitHub Container Registry (main branch only)
+#
+# Secrets required (set in GitHub → Settings → Secrets and variables → Actions):
+#   None for now — GHCR uses GITHUB_TOKEN which is automatic.
+#   AWS secrets added in Stage 5.
+# ══════════════════════════════════════════════════════════════════════════════
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  # Image name: ghcr.io/<your-github-username>/churn-predictor
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/churn-predictor
+  PYTHON_VERSION: "3.11"
+
+# ── Jobs ──────────────────────────────────────────────────────────────────────
+
+jobs:
+
+  # ── 1. Lint ─────────────────────────────────────────────────────────────────
+  lint:
+    name: Lint (ruff)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install ruff
+        run: pip install ruff==0.4.4
+
+      - name: Run ruff
+        run: ruff check src/ scripts/ tests/
+
+
+  # ── 2. Test ─────────────────────────────────────────────────────────────────
+  test:
+    name: Test (pytest)
+    runs-on: ubuntu-latest
+    # Tests run in parallel with lint — no dependency between them
+    needs: []
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip                    # caches ~/.cache/pip between runs
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: |
+          pytest tests/ \
+            --ignore=tests/test_docker_smoke.py \
+            -v \
+            --tb=short \
+            --cov=src \
+            --cov-report=xml \
+            --cov-report=term-missing
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+          retention-days: 7
+
+
+  # ── 3. Build Docker image ───────────────────────────────────────────────────
+  build:
+    name: Build Docker image
+    runs-on: ubuntu-latest
+    needs: [lint, test]           # only build if lint + tests pass
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        # Buildx enables layer caching and multi-platform builds
+
+      - name: Build image (no push)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          push: false               # just verify it builds — push happens next job
+          tags: ${{ env.IMAGE_NAME }}:test
+          # Cache layers from the registry to speed up subsequent builds
+          cache-from: type=gha
+          cache-to:   type=gha,mode=max
+
+
+  # ── 4. Push to GitHub Container Registry ───────────────────────────────────
+  push:
+    name: Push image to GHCR
+    runs-on: ubuntu-latest
+    needs: [build]                # only push if build succeeded
+    # Only push on merges to main — not on PRs
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    permissions:
+      contents: read
+      packages: write             # required to push to GHCR
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}  # automatic — no manual secret needed
+
+      - name: Extract metadata (tags + labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            # Tag with the short git SHA:  ghcr.io/you/churn-predictor:abc1234
+            type=sha,prefix=sha-,format=short
+            # Tag latest on every main push: ghcr.io/you/churn-predictor:latest
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags:    ${{ steps.meta.outputs.tags }}
+          labels:  ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to:   type=gha,mode=max

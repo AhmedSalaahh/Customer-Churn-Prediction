@@ -1,0 +1,23 @@
+[tool.pytest.ini_options]
+# Run from the project root: pytest tests/ -v
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+# Always show short tracebacks and local variables on failure
+addopts = "--tb=short -v"
+
+# Markers used to separate test categories
+markers = [
+    "unit: fast unit tests, no external dependencies",
+    "integration: slower tests that train real models",
+    "smoke: require a running Docker container",
+]
+
+# Ignore smoke tests by default (require live container)
+# Run them explicitly: pytest tests/test_docker_smoke.py
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::UserWarning",
+]

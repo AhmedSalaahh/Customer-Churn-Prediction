@@ -1,0 +1,88 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# .github/workflows/pr_checks.yml
+#
+# Fast feedback on every pull request — runs in ~2 min.
+# Blocks merge if any check fails.
+#
+# Checks:
+#   - Unit tests only (fast, no integration)
+#   - Dockerfile linting with hadolint
+#   - requirements.txt safety scan with pip-audit
+# ══════════════════════════════════════════════════════════════════════════════
+
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+
+  # ── Fast unit tests (no integration) ───────────────────────────────────────
+  unit-tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Run unit tests only
+        run: |
+          pytest \
+            tests/test_preprocessing.py \
+            tests/test_engineering.py \
+            tests/test_pipeline.py \
+            tests/test_api_health.py \
+            tests/test_api_predict.py \
+            -v --tb=short
+
+
+  # ── Dockerfile lint ─────────────────────────────────────────────────────────
+  dockerfile-lint:
+    name: Dockerfile lint (hadolint)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+          # Ignore rules that conflict with our intentional choices:
+          # DL3008 — pin apt versions (fine for our use case)
+          # DL3013 — pin pip versions (managed via requirements.txt)
+          ignore: DL3008,DL3013
+
+      - name: Lint Dockerfile.train
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile.train
+          ignore: DL3008,DL3013
+
+
+  # ── Dependency security scan ────────────────────────────────────────────────
+  security-scan:
+    name: Dependency audit (pip-audit)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - run: pip install pip-audit
+
+      - name: Audit dependencies for known CVEs
+        run: pip-audit -r requirements.txt --ignore-vuln PYSEC-2022-42969
+        # PYSEC-2022-42969 is a low-severity setuptools issue with no fix yet

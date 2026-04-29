@@ -1,0 +1,27 @@
+# ruff.toml
+# Linting configuration for the CI pipeline.
+# Run locally: ruff check src/ scripts/ tests/
+# Fix automatically: ruff check --fix src/ scripts/ tests/
+
+[lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes (unused imports, undefined names)
+    "I",    # isort (import ordering)
+    "N",    # pep8 naming conventions
+    "UP",   # pyupgrade (modern Python syntax)
+]
+
+ignore = [
+    "E501",   # line too long — black handles this
+    "N803",   # argument name should be lowercase — sklearn uses X, y
+    "N806",   # variable in function should be lowercase — same reason
+    "UP007",  # use X | Y for union — keep Python 3.9 compat
+]
+
+[lint.per-file-ignores]
+# Tests can use assert statements freely
+"tests/*" = ["S101"]
+# Scripts can have loose imports
+"scripts/*" = ["F401"]

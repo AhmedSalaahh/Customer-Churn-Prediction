@@ -1,0 +1,93 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# .github/workflows/retrain.yml
+#
+# Scheduled retraining pipeline — runs every Sunday at 02:00 UTC.
+# Can also be triggered manually from the GitHub Actions UI.
+#
+# What it does:
+#   1. Trains all models using the training Docker image
+#   2. Runs the full test suite on the new model
+#   3. Saves the new best_model.pkl as a versioned GitHub artifact
+#   4. Rebuilds and pushes a new API image tagged with the run date
+#
+# ══════════════════════════════════════════════════════════════════════════════
+
+name: Scheduled Retraining
+
+on:
+  schedule:
+    - cron: "0 2 * * 0"       # every Sunday at 02:00 UTC
+  workflow_dispatch:           # allow manual trigger from the UI
+    inputs:
+      reason:
+        description: "Reason for manual retraining"
+        required: false
+        default: "Manual trigger"
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/churn-predictor
+  PYTHON_VERSION: "3.11"
+
+jobs:
+
+  retrain:
+    name: Retrain and publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # In a real pipeline, data would be pulled from S3 or a database here.
+      # For now we assume data/Telco\ Customer\ Churn.csv is in the repo
+      # (or pulled from a release artifact).
+      - name: Train models
+        run: python scripts/train.py --config configs/config.yaml
+
+      - name: Run full test suite
+        run: |
+          pytest tests/ \
+            --ignore=tests/test_docker_smoke.py \
+            -v --tb=short
+
+      - name: Save model artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: best_model_${{ github.run_id }}
+          path: outputs/best_model.pkl
+          retention-days: 30
+
+      - name: Log in to GHCR
+        if: success()
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push retrained image
+        if: success()
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:retrained-${{ github.run_id }}
+            ${{ env.IMAGE_NAME }}:latest
+          cache-from: type=gha
+          cache-to:   type=gha,mode=max
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "Retraining failed on run ${{ github.run_id }}"
+          echo "Check logs at: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          # In production: post to Slack or send email here
